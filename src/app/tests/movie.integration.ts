@@ -1,8 +1,7 @@
 import * as chai from "chai";
 import chaiHttp = require("chai-http");
 import "mocha";
-
-const server = process.env.integration_server_url;
+import { integrationServer } from "../../config/constants";
 
 chai.use(chaiHttp);
 
@@ -10,7 +9,7 @@ describe("Testing Movie Controller Methods", () => {
 
   it("Testing /api/movies", async () => {
     const movieId = "tt0347779";
-    return chai.request(server)
+    return chai.request(integrationServer)
     .get(`/api/movies`)
     .then((res) => {
       chai.expect(res).to.have.status(200);
@@ -22,7 +21,7 @@ describe("Testing Movie Controller Methods", () => {
 
   it("Testing /api/movies/:id", async () => {
     const queryId = "tt0120737";
-    return chai.request(server)
+    return chai.request(integrationServer)
     .get(`/api/movies/${queryId}`)
     .then((res) => {
       chai.expect(res).to.have.status(200);
