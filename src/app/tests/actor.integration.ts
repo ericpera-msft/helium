@@ -23,8 +23,9 @@ describe("Testing Actor Controller Methods", () => {
   it("Testing POST + GET /api/actors/:id", async () => {
     const randomNumber = numUtility.getRandomNumber();
     const actor = {
-      actorId: "${randomNumber}",
+      actorId: `${randomNumber}`,
       birthYear: 1997,
+      movies: [],
       name: "someName",
       profession: ["actor"],
       type: "Actor",
