@@ -29,6 +29,7 @@ describe("Testing Movie Controller Methods", () => {
       movieId: randomString,
       roles: [],
       runtime: 120,
+      textSearch: randomString.toLowerCase(),
       title: randomString,
       type: "Movie",
       year: 1994,
