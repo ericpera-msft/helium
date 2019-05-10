@@ -89,7 +89,7 @@ export class ActorController implements interfaces.Controller {
             name: Joi.string().required(),
             textSearch: Joi.string().when("name",
                 {
-                    is: Joi.string().regex(/^(?!\s*$).+/).required(),
+                    is: Joi.string().regex(/^(?!\s*$).+/).required(), // Matches strings that aren't empty or whitespace
                     then: Joi.valid(Joi.ref("$name")).required(),
                 }),
             type: Joi.string().valid("Actor").required(),

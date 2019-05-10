@@ -79,7 +79,7 @@ export class MovieController implements interfaces.Controller {
             movieId: Joi.string().required(),
             textSearch: Joi.string().when("title",
                 {
-                    is: Joi.string().regex(/^(?!\s*$).+/).required(),
+                    is: Joi.string().regex(/^(?!\s*$).+/).required(), // Matches strings that aren't empty or whitespace
                     then: Joi.valid(Joi.ref("$title")).required(),
                 }),
             title: Joi.string().required(),
