@@ -13,6 +13,18 @@ import { ITelemProvider } from "../../telem/itelemprovider";
 @injectable()
 export class MovieController implements interfaces.Controller {
 
+    private static schema = Joi.object().keys({
+        id: Joi.string().required(),
+        movieId: Joi.string().required(),
+        textSearch: Joi.string().when("title",
+            {
+                is: Joi.string().regex(/^(?!\s*$).+/).required(), // Matches strings that aren't empty or whitespace
+                then: Joi.valid(Joi.ref("$title")).required(),
+            }),
+        title: Joi.string().required(),
+        type: Joi.string().valid("Movie").required(),
+    }).unknown(); // unknown allows keys to exist in the object that aren't described in the schema above
+
     constructor(
         @inject("IDatabaseProvider") private cosmosDb: IDatabaseProvider,
         @inject("ITelemProvider") private telem: ITelemProvider) {
@@ -74,20 +86,8 @@ export class MovieController implements interfaces.Controller {
 
         this.telem.trackEvent("create movie");
 
-        const schema = Joi.object().keys({
-            id: Joi.string().required(),
-            movieId: Joi.string().required(),
-            textSearch: Joi.string().when("title",
-                {
-                    is: Joi.string().regex(/^(?!\s*$).+/).required(), // Matches strings that aren't empty or whitespace
-                    then: Joi.valid(Joi.ref("$title")).required(),
-                }),
-            title: Joi.string().required(),
-            type: Joi.string().valid("Movie").required(),
-        }).unknown(); // unknown allows keys to exist in the object that aren't described in the schema above
-
         // Return validation result
-        const validation = Joi.validate(req.body, schema,
+        const validation = Joi.validate(req.body, MovieController.schema,
             {
                 abortEarly: false,
                 context:
