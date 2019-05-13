@@ -1,3 +1,4 @@
+import Joi = require("@hapi/joi");
 import { DocumentQuery } from "documentdb";
 import { inject, injectable } from "inversify";
 import { Controller, Get, interfaces, Post } from "inversify-restify-utils";
@@ -12,6 +13,18 @@ import { Movie } from "../models/movie";
 @Controller("/api/movies")
 @injectable()
 export class MovieController implements interfaces.Controller {
+
+    private static schema = Joi.object().keys({
+        id: Joi.string().required(),
+        movieId: Joi.string().required(),
+        textSearch: Joi.string().when("title",
+            {
+                is: Joi.string().regex(/^(?!\s*$).+/).required(), // Matches strings that aren't empty or whitespace
+                then: Joi.valid(Joi.ref("$title")).required(),
+            }),
+        title: Joi.string().required(),
+        type: Joi.string().valid("Movie").required(),
+    }).unknown(); // unknown allows keys to exist in the object that aren't described in the schema above
 
     constructor(
         @inject("IDatabaseProvider") private cosmosDb: IDatabaseProvider,
