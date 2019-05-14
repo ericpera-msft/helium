@@ -1,5 +1,12 @@
 import {
-    Equals, IsAlphanumeric, IsLowercase, IsNotEmpty, NotEquals, validate, ValidateIf,
+    Equals,
+    IsAlphanumeric,
+    IsLowercase,
+    IsNotEmpty,
+    NotEquals,
+    validate,
+    ValidateIf,
+    ValidationError,
 } from "class-validator";
 import { IsEqualToProperty } from "../../utilities/validationUtilities";
 import { IValidatable } from "./ivalidatable";
@@ -41,7 +48,7 @@ export class Actor implements IValidatable {
         public movies?: Movie[]) {
         this.id = id;
         this.actorId = actorId;
-        this. name = name;
+        this.name = name;
         this.textSearch = textSearch;
         this.type = "Actor";
         this.key = key;
@@ -50,7 +57,7 @@ export class Actor implements IValidatable {
         this.movies = movies;
     }
 
-    public isValid() {
+    public validate(): Promise<ValidationError[]> {
         return validate(this);
     }
 }

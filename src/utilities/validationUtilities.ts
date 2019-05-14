@@ -1,9 +1,14 @@
 import { registerDecorator, ValidationArguments, ValidationOptions } from "class-validator";
 
-// Custom decorator that compares two properties in an object instance
+/**
+ *
+ * @param property The name of the object's property that will be compared against the decorated property
+ * @param modifier Optional function that is used to modify the value of the property passed to the decorator
+ * @param validationOptions Options used to pass to validation decorators
+ */
 export function IsEqualToProperty(
     property: string,
-    condition?: (value: any) => any,
+    modifier?: (value: any) => any,
     validationOptions?: ValidationOptions) {
     return (object: object, propertyName: string) => {
         registerDecorator({
@@ -17,7 +22,7 @@ export function IsEqualToProperty(
                     const [relatedPropertyName] = args.constraints; // object being validated
                     const relatedValue = (args.object as any)[relatedPropertyName];
                     return typeof value === typeof relatedValue
-                        && value === (condition !== undefined ? condition(relatedValue) : relatedValue);
+                        && value === (modifier !== undefined ? modifier(relatedValue) : relatedValue);
                 },
             },
         });

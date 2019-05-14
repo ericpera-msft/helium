@@ -77,7 +77,7 @@ export class MovieController implements interfaces.Controller {
         const movie: Movie = Object.assign(Object.create(Movie.prototype),
             JSON.parse(JSON.stringify(req.body)));
 
-        movie.isValid().then(async (errors) => {
+        movie.validate().then(async (errors) => {
             if (errors.length > 0) {
                 return res.send(400,
                     {
@@ -85,11 +85,11 @@ export class MovieController implements interfaces.Controller {
                             Object.values(x.constraints))),
                         status: 400,
                     });
-            } else {
-                const result = await this.cosmosDb.upsertDocument(database, collection, req.body);
-                return res.send(201, result);
             }
         });
+
+        const result = await this.cosmosDb.upsertDocument(database, collection, req.body);
+        return res.send(201, result);
     }
 
     /**

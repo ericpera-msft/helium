@@ -85,18 +85,18 @@ export class ActorController implements interfaces.Controller {
         const actor: Actor = Object.assign(Object.create(Actor.prototype),
             JSON.parse(JSON.stringify(req.body)));
 
-        actor.isValid().then(async (errors) => {
+        actor.validate().then(async (errors) => {
             if (errors.length > 0) {
                 return res.send(400,
                     {
                         message: [].concat.apply([], errors.map((x) =>
-                        Object.values(x.constraints))),
+                            Object.values(x.constraints))),
                         status: 400,
                     });
-            } else {
-                const result = await this.cosmosDb.upsertDocument(database, collection, req.body);
-                return res.send(201, result);
             }
         });
+
+        const result = await this.cosmosDb.upsertDocument(database, collection, req.body);
+        return res.send(201, result);
     }
 }
