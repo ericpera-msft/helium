@@ -9,10 +9,9 @@
   "scripts": {
     "start": "node dist/server.js",
     "lint": "tslint -c tslint.json 'src/**/*.ts'",
-    "swagger": "node_modules/apidoc-swagger/bin/apidocSwagger.js -i src/app/controllers/ -o dist/",
     "test-unit": "mocha --reporter spec --compilers ts:ts-node/register '**/*.unit.ts'",
     "test-integration": "mocha --reporter spec --timeout 5000 --compilers ts:ts-node/register '**/*.integration.ts'",
-    "build": "gulp scripts && gulp content",
+    "build": "gulp scripts && gulp content && node_modules/apidoc-swagger/bin/apidocSwagger.js -i src/app/controllers/ -o dist/",
     "docker-build": "docker build -t helium:canary .",
     "docker-run": "docker run -it -p 8080:8080 helium:canary"
   },
