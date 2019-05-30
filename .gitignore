@@ -5,3 +5,4 @@ swagger.json
 ### OSX ###
 # General
 .DS_Store
+.terraform
