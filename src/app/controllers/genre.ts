@@ -30,7 +30,7 @@ export class GenreController implements interfaces.Controller {
      * @apiGroup Genres
      *
      * @apiDescription
-     * Retrieve and return all genres
+     * Retrieve and return all genres.
      */
     @Get("/")
     public async getAll(req: Request, res) {

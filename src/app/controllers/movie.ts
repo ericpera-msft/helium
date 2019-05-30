@@ -30,8 +30,8 @@ export class MovieController implements interfaces.Controller {
      * @apiGroup Movies
      *
      * @apiDescription
-     * Retrieve and return all movies
-     * Filter movies by name "?q=<name>"
+     * Retrieve and return all movies.
+     * Filter movies by name "?q=<name>".
      *
      * @apiParam (query) {String} [q] Movie title.
      */
@@ -139,7 +139,7 @@ export class MovieController implements interfaces.Controller {
      * @apiGroup Movies
      *
      * @apiDescription
-     * Create a movie
+     * Create a movie.
      *
      * @apiParam (body) {String} id
      * @apiParam (body) {String} movieId

@@ -28,7 +28,7 @@ export class SystemController implements interfaces.Controller {
      * @apiGroup System
      *
      * @apiDescription
-     * Tells external services if the service is running
+     * Tells external services if the service is running.
      *
      * @apiError InternalServerError An error was thrown while trying to query the database
      *

@@ -30,7 +30,7 @@ export class ActorController implements interfaces.Controller {
      * @apiGroup Actors
      *
      * @apiDescription
-     * Retrieve and return all actors
+     * Retrieve and return all actors.
      */
     @Get("/")
     public async getAll(req: Request, res) {
@@ -118,7 +118,7 @@ export class ActorController implements interfaces.Controller {
      * @apiGroup Actors
      *
      * @apiDescription
-     * Create an actor
+     * Create an actor.
      *
      * @apiParam (body) {String} id
      * @apiParam (body) {String} actorId
