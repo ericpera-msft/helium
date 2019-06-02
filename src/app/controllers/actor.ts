@@ -61,7 +61,7 @@ export class ActorController implements interfaces.Controller {
     }
 
     /**
-     * @api {get} /api/actors/:id Request Actor information
+     * @api {get} /api/actors/ Request Actor information
      * @apiName GetActor
      * @apiGroup Actors
      *
@@ -125,7 +125,7 @@ export class ActorController implements interfaces.Controller {
      * @apiParam (body) {String} textSearch
      * @apiParam (body) {String} name
      * @apiParam (body) {String="Actor"} type
-     * @apiParam (body) {Number} [key]
+     * @apiParam (body) {String} [key]
      * @apiParam (body) {Number} [birthYear] Year they were born
      * @apiParam (body) {String[]} [profession]
      * @apiParam (body) {Movie[]} [movies]

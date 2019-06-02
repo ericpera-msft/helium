@@ -84,7 +84,7 @@ export class MovieController implements interfaces.Controller {
     }
 
     /**
-     * @api {get} /api/movies/:id Request Movie information
+     * @api {get} /api/movies/ Request Movie information
      * @apiName GetMovie
      * @apiGroup Movies
      *
@@ -146,7 +146,7 @@ export class MovieController implements interfaces.Controller {
      * @apiParam (body) {String} textSearch
      * @apiParam (body) {String} title
      * @apiParam (body) {String="Movie"} type
-     * @apiParam (body) {Number} [key]
+     * @apiParam (body) {String} [key]
      * @apiParam (body) {Number} [year]
      * @apiParam (body) {Number} [rating]
      * @apiParam (body) {Number} [votes]
@@ -188,7 +188,14 @@ export class MovieController implements interfaces.Controller {
     }
 
     /**
-     * Delete a single movie by movie ID.
+     * @api {delete} /api/movies/ Delete Movie
+     * @apiName DeleteMovie
+     * @apiGroup Movies
+     *
+     * @apiDescription
+     * Delete a movie.
+     *
+     * @apiParam (query) {String} id Movie's unique ID.
      */
     @Delete("/:id")
     public async deleteMovieById(req, res) {
