@@ -1,11 +1,12 @@
 import { DocumentQuery, RetrievedDocument } from "documentdb";
 import { inject, injectable } from "inversify";
-import { Controller, Delete, Get, interfaces, Post } from "inversify-restify-utils";
+import { Controller, Delete, Get, interfaces, Post, Put } from "inversify-restify-utils";
 import { httpStatus } from "../../config/constants";
 import { collection, database } from "../../db/dbconstants";
 import { IDatabaseProvider } from "../../db/idatabaseprovider";
 import { ILoggingProvider } from "../../logging/iLoggingProvider";
 import { ITelemProvider } from "../../telem/itelemprovider";
+import { DateUtilities } from "../../utilities/dateUtilities";
 import { Movie } from "../models/movie";
 
 /**
@@ -25,20 +26,33 @@ export class MovieController implements interfaces.Controller {
     }
 
     /**
-     * @api {get} /api/movies Request All Movies
-     * @apiName GetAll
-     * @apiGroup Movies
+     * @swagger
      *
-     * @apiDescription
-     * Retrieve and return all movies.
-     * Filter movies by name "?q=<name>".
-     *
-     * @apiParam (query) {String} [q] Movie title.
+     * /api/movies:
+     *   get:
+     *     description: Retrieve and return all movies.
+     *     tags:
+     *       - Movies
+     *     parameters:
+     *       - name: q
+     *         description: The movie title to filter by.
+     *         in: query
+     *         schema:
+     *           type: string
+     *     responses:
+     *       '200':
+     *         description: List of movie objects
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: array
+     *               items:
+     *                 $ref: '#/components/schemas/Movie'
+     *       default:
+     *         description: Unexpected error
      */
     @Get("/")
     public async getAll(req, res) {
-
-        this.telem.trackEvent("get all movies");
         let querySpec: DocumentQuery;
 
         // Movie name is an optional query param.
@@ -80,25 +94,40 @@ export class MovieController implements interfaces.Controller {
         } catch (err) {
             resCode = httpStatus.InternalServerError;
         }
+
         return res.send(resCode, results);
     }
 
     /**
-     * @api {get} /api/movies/ Request Movie information
-     * @apiName GetMovie
-     * @apiGroup Movies
+     * @swagger
      *
-     * @apiDescription
-     * Retrieve and return a single movie by movie ID.
-     *
-     * @apiParam (query) {String} id Movie's unique ID.
+     * /api/movies/{id}:
+     *   get:
+     *     description: Retrieve and return a single movie by movie ID.
+     *     tags:
+     *       - Movies
+     *     parameters:
+     *       - name: id
+     *         description: The ID of the movie to look for.
+     *         in: path
+     *         required: true
+     *         schema:
+     *           type: string
+     *     responses:
+     *       '200':
+     *         description: The movie object
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Movie'
+     *       '404':
+     *         description: An movie with the specified ID was not found.
+     *       default:
+     *         description: Unexpected error
      */
     @Get("/:id")
     public async getMovieById(req, res) {
-
         const movieId = req.params.id;
-
-        this.telem.trackEvent("get movie by id");
 
         const querySpec: DocumentQuery = {
             parameters: [
@@ -107,8 +136,8 @@ export class MovieController implements interfaces.Controller {
                     value: movieId,
                 },
             ],
-            query: `SELECT root.movieId, root.type, root.title, root.year,
-            root.runtime, root.genres, root.roles
+            query: `SELECT root.id, root.movieId, root.type, root.title, root.year,
+            root.runtime, root.genres, root.roles, root.key
             FROM root where root.id = @id and root.type = 'Movie'`,
         };
 
@@ -134,29 +163,40 @@ export class MovieController implements interfaces.Controller {
     }
 
     /**
-     * @api {post} /api/movies Create Movie
-     * @apiName PostMovie
-     * @apiGroup Movies
+     * @swagger
      *
-     * @apiDescription
-     * Create a movie.
-     *
-     * @apiParam (body) {String} id
-     * @apiParam (body) {String} movieId
-     * @apiParam (body) {String} textSearch
-     * @apiParam (body) {String} title
-     * @apiParam (body) {String="Movie"} type
-     * @apiParam (body) {String} [key]
-     * @apiParam (body) {Number} [year]
-     * @apiParam (body) {Number} [rating]
-     * @apiParam (body) {Number} [votes]
-     * @apiParam (body) {String[]} [genres]
-     * @apiParam (body) {Actor[]} [roles]
+     * /api/movies:
+     *   post:
+     *     tags:
+     *       - Movies
+     *     requestBody:
+     *       description: Creates an movie.
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             $ref: '#/components/schemas/Movie'
+     *         application/xml:
+     *           schema:
+     *             $ref: '#/components/schemas/Movie'
+     *         application/x-www-form-urlencoded:
+     *           schema:
+     *             $ref: '#/components/schemas/Movie'
+     *         text/plain:
+     *           schema:
+     *             type: string
+     *     responses:
+     *       '201':
+     *         description: The created movie
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Movie'
+     *       default:
+     *         description: Unexpected error
      */
     @Post("/")
     public async createMovie(req, res) {
-
-        this.telem.trackEvent("create movie");
 
         const movie: Movie = Object.assign(Object.create(Movie.prototype),
             JSON.parse(JSON.stringify(req.body)));
@@ -184,44 +224,133 @@ export class MovieController implements interfaces.Controller {
         } catch (err) {
             resCode = httpStatus.InternalServerError;
         }
+
         return res.send(resCode, result);
     }
 
     /**
-     * @api {delete} /api/movies/ Delete Movie
-     * @apiName DeleteMovie
-     * @apiGroup Movies
+     * @swagger
      *
-     * @apiDescription
-     * Delete a movie.
+     * /api/movies/{id}:
+     *   put:
+     *     tags:
+     *       - Movies
+     *     parameters:
+     *       - name: id
+     *         description: The ID of the movie to patch.
+     *         in: path
+     *         required: true
+     *         schema:
+     *           type: string
+     *     requestBody:
+     *       description: Update a movie
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             $ref: '#/components/schemas/Movie'
+     *         application/xml:
+     *           schema:
+     *             $ref: '#/components/schemas/Movie'
+     *         application/x-www-form-urlencoded:
+     *           schema:
+     *             $ref: '#/components/schemas/Movie'
+     *         text/plain:
+     *           schema:
+     *             type: string
+     *     responses:
+     *       '201':
+     *         description: The created movie
+     *         content:
+     *           application/json:
+     *             schema:
+     *               $ref: '#/components/schemas/Movie'
+     *       default:
+     *         description: Unexpected error
+     */
+    @Put("/:id")
+    public async updateMovie(req, res) {
+        const movieId = req.params.id;
+
+        const movie: Movie = Object.assign(Object.create(Movie.prototype),
+            JSON.parse(JSON.stringify(req.body)));
+
+        movie.validate().then(async (errors) => {
+            if (errors.length > 0) {
+                return res.send(httpStatus.BadRequest,
+                    {
+                        message: [].concat.apply([], errors.map((x) =>
+                            Object.values(x.constraints))),
+                        status: httpStatus.BadRequest,
+                    });
+            }
+        });
+
+        // update movie id from url param
+        movie.id = movieId;
+
+        // upsert document, catch errors
+        let resCode: number = httpStatus.Created;
+        let result: RetrievedDocument;
+        try {
+            result = await this.cosmosDb.upsertDocument(
+                database,
+                collection,
+                movie,
+            );
+        } catch (err) {
+            resCode = httpStatus.InternalServerError;
+        }
+        return res.send(resCode, result);
+    }
+
+    /**
+     * @swagger
      *
-     * @apiParam (query) {String} id Movie's unique ID.
+     * /api/movies/{id}:
+     *   delete:
+     *     description: Delete a movie
+     *     tags:
+     *       - Movies
+     *     parameters:
+     *       - name: id
+     *         description: The ID of the movie to delete.
+     *         in: path
+     *         required: true
+     *         schema:
+     *           type: string
+     *     responses:
+     *       '204':
+     *         description: The resource was deleted successfully.
+     *       '404':
+     *         description: A movie with that ID does not exist.
+     *       default:
+     *         description: Unexpected error
      */
     @Delete("/:id")
     public async deleteMovieById(req, res) {
-
         const movieId = req.params.id;
 
-        this.telem.trackEvent("delete movie by id");
-
         // movieId isn't the partition key, so any search on it will require a cross-partition query.
-        let resCode = httpStatus.OK;
-        let result = "deleted";
+        let resCode = httpStatus.NoContent;
+        let result: string;
         try {
-          await this.cosmosDb.deleteDocument(
-            database,
-            collection,
-            movieId,
-          );
+            await this.cosmosDb.deleteDocument(
+                database,
+                collection,
+                movieId,
+            );
+            return res.send(resCode);
         } catch (err) {
-          if (err.toString().includes("NotFound")) {
-            resCode = httpStatus.NotFound;
-            result = "A Movie with that ID does not exist";
+            if (err.toString().includes("NotFound")) {
+                resCode = httpStatus.NotFound;
+                result = "A Movie with that ID does not exist";
             } else {
-            resCode = httpStatus.InternalServerError;
-            result = err.toString();
-          }
+                resCode = httpStatus.InternalServerError;
+                result = err.toString();
+            }
         }
+
         return res.send(resCode, result);
     }
 }

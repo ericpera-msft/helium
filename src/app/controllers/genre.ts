@@ -7,6 +7,7 @@ import { collection, database } from "../../db/dbconstants";
 import { IDatabaseProvider } from "../../db/idatabaseprovider";
 import { ILoggingProvider } from "../../logging/iLoggingProvider";
 import { ITelemProvider } from "../../telem/itelemprovider";
+import { DateUtilities } from "../../utilities/dateUtilities";
 
 /**
  * controller implementation for our genres endpoint
@@ -25,17 +26,27 @@ export class GenreController implements interfaces.Controller {
     }
 
     /**
-     * @api {get} /api/genres Request All Genres
-     * @apiName GetAll
-     * @apiGroup Genres
+     * @swagger
      *
-     * @apiDescription
-     * Retrieve and return all genres.
+     * /api/genres:
+     *   get:
+     *     description: Retrieve and return all genres.
+     *     tags:
+     *       - Genres
+     *     responses:
+     *       '200':
+     *         description: List of genres objects
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: array
+     *               items:
+     *                 type: string
+     *       default:
+     *         description: Unexpected error
      */
     @Get("/")
     public async getAll(req: Request, res) {
-        this.telem.trackEvent("get all genres");
-
         const querySpec = {
             parameters: [],
             query: "SELECT VALUE root.id FROM root where root.type = 'Genre'",
@@ -53,6 +64,7 @@ export class GenreController implements interfaces.Controller {
         } catch (err) {
           resCode = httpStatus.InternalServerError;
         }
+
         return res.send(resCode, results);
     }
 }
