@@ -13,6 +13,66 @@ variable "service_plan_name" {
   type        = "string"
 }
 
+variable "app_service_name" {
+  description = "The name of the app service to be created"
+  type        = map(string)
+  default     = {}
+}
+
+variable "enable_storage" {
+  description = "Determines whether or not a storage is attached to the app service."
+  type        = bool
+  default     = false
+}
+
+variable "vault_uri" {
+  description = "Specifies the URI of the Key Vault resource. Providing this will create a new app setting called KEYVAULT_URI containing the uri value."
+  type        = string
+  default     = ""
+}
+
+variable "docker_registry_server_url" {
+  description = "The docker registry server URL for app service to be created"
+  type        = string
+  default     = "index.docker.io"
+}
+
+variable "docker_registry_server_username" {
+  description = "The docker registry server username for app service to be created"
+  type        = string
+  default     = ""
+}
+
+variable "docker_registry_server_password" {
+  description = "The docker registry server password for app service to be created"
+  type        = string
+  default     = ""
+}
+
+variable "app_insights_instrumentation_key" {
+  description = "The Instrumentation Key for the Application Insights component used for app service to be created"
+  type        = string
+  default     = ""
+}
+
+variable "site_config_always_on" {
+  description = "Should the app be loaded at all times? Defaults to false."
+  type        = bool
+  default     = false
+}
+
+variable "vnet_name" {
+  description = "The vnet integration name"
+  type        = string
+  default     = ""
+}
+
+variable "vnet_subnet_id" {
+  description = "The vnet integration subnet gateway identifier."
+  type        = string
+  default     = ""
+}
+
 variable "appinsights_name" {
   description = "Name of the App Insights to create"
   type        = "string"
