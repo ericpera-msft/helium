@@ -48,11 +48,10 @@ export class CosmosDBProvider {
      * @param telem Telemetry provider used for metrics/events.
      * @param logger Logging provider user for tracing/logging.
      */
-    constructor(
-        @inject("string") @named("cosmosDbUrl") private url: string,
-        @inject("string") @named("cosmosDbKey") accessKey: string,
-        @inject("ITelemProvider") private telem: ITelemProvider,
-        @inject("ILoggingProvider") private logger: ILoggingProvider) {
+    constructor(@inject("string") @named("cosmosDbUrl") private url: string,
+                @inject("string") @named("cosmosDbKey") accessKey: string,
+                @inject("ITelemProvider") private telem: ITelemProvider,
+                @inject("ILoggingProvider") private logger: ILoggingProvider) {
         this.docDbClient = new DocumentClient(url, {
             masterKey: accessKey,
         });
@@ -78,33 +77,24 @@ export class CosmosDBProvider {
             const collectionLink = CosmosDBProvider._buildCollectionLink(database, collection);
 
             // Get the timestamp immediately before the call to queryDocuments
-            const queryStartTimeMs = DateUtilities.getTimer();
-
+            const timer = DateUtilities.getTimer();
             this.docDbClient.queryDocuments(collectionLink, query, options).toArray((err, results, headers) => {
                 this.logger.Trace("In CosmosDB queryDocuments");
 
-                // Get the timestamp for when the query completes
-                const timer = DateUtilities.getTimer();
-
                 // Set values for dependency telemetry.
-                const dependencyTypeName = "CosmosDB";
-                const name = this.url;
-
                 // TODO: Figure out how to extract the part of the query after the '?' in the request
                 const data = query.toString();
-
                 const resultCode = (err == null) ? "" : err.code.toString();
                 const success = (err == null) ? true : false;
-                const duration = timer();
 
                 // Get an object to track dependency information from the telemetry provider.
                 const dependencyTelem = this.telem.getDependencyTrackingObject(
-                    dependencyTypeName,
-                    name,
-                    data,
+                    "CosmosDB", // dependencyTypeName
+                    this.url,   // name
+                    data,       // query string
                     resultCode,
                     success,
-                    duration,
+                    timer(),    // duration
                 );
 
                 // Track DependencyTelemetry for query
@@ -113,7 +103,7 @@ export class CosmosDBProvider {
                 // Get an object to track query time metric
                 const metricTelem = this.telem.getMetricTelemetryObject(
                     "CosmosDB: QueryDocuments Duration",
-                    duration,
+                    timer(),
                 );
 
                 // Track CosmosDB query time metric

@@ -31,6 +31,7 @@ import EndpointLogger from "./middleware/EndpointLogger";
     iocContainer.bind<interfaces.Controller>(TYPE.Controller).to(GenreController).whenTargetNamed("GenreController");
     iocContainer.bind<interfaces.Controller>(TYPE.Controller).to(MovieController).whenTargetNamed("MovieController");
     iocContainer.bind<interfaces.Controller>(TYPE.Controller).to(SystemController).whenTargetNamed("SystemController");
+
     iocContainer.bind<IDatabaseProvider>("IDatabaseProvider").to(CosmosDBProvider).inSingletonScope();
     iocContainer.bind<string>("string").toConstantValue(config.cosmosDbUrl).whenTargetNamed("cosmosDbUrl");
     iocContainer.bind<string>("string").toConstantValue(config.cosmosDbKey).whenTargetNamed("cosmosDbKey");
@@ -88,7 +89,7 @@ import EndpointLogger from "./middleware/EndpointLogger";
         });
 
         log.Trace("Setting up node modules to serve statically");
-        app.get("/node_modules/*", restify.plugins.serveStatic({
+        app.get("/node_modules/swagger-ui-dist/*", restify.plugins.serveStatic({
             directory: __dirname + "/..",
         }));
     }).build().listen(port, () => {
@@ -157,7 +158,7 @@ export async function getConfigValues(
 
     // if some secrets still don't exist, check env
     if (!cosmosDbKey) {
-        log.Trace("Setting cosmodDbKey from environment variable");
+        log.Trace("Setting cosmosDbKey from environment variable");
         cosmosDbKey = process.env.COSMOSDB_KEY;
     }
     if (!insightsKey) {

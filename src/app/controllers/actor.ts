@@ -2,12 +2,11 @@ import { DocumentQuery, RetrievedDocument } from "documentdb";
 import { inject, injectable } from "inversify";
 import { Controller, Get, interfaces, Post } from "inversify-restify-utils";
 import { Request } from "restify";
-import { httpStatus } from "../../config/constants";
+import * as HttpStatus from "http-status-codes";
 import { collection, database, defaultPartitionKey} from "../../db/dbconstants";
 import { IDatabaseProvider } from "../../db/idatabaseprovider";
 import { ILoggingProvider } from "../../logging/iLoggingProvider";
 import { ITelemProvider } from "../../telem/itelemprovider";
-import { DateUtilities } from "../../utilities/dateUtilities";
 import { Actor } from "../models/actor";
 
 // Controller implementation for our actors endpoint
@@ -19,10 +18,9 @@ export class ActorController implements interfaces.Controller {
     private static readonly actorDoesNotExistError: any = "An Actor with that ID does not exist";
 
     // Instantiate the actor controller
-    constructor(
-        @inject("IDatabaseProvider") private cosmosDb: IDatabaseProvider,
-        @inject("ITelemProvider") private telem: ITelemProvider,
-        @inject("ILoggingProvider") private logger: ILoggingProvider) {
+    constructor(@inject("IDatabaseProvider") private cosmosDb: IDatabaseProvider,
+                @inject("ITelemProvider") private telem: ITelemProvider,
+                @inject("ILoggingProvider") private logger: ILoggingProvider) {
         this.cosmosDb = cosmosDb;
         this.telem = telem;
         this.logger = logger;
@@ -85,7 +83,7 @@ export class ActorController implements interfaces.Controller {
         }
 
         // make query, catch errors
-        let resCode = httpStatus.OK;
+        let resCode = HttpStatus.OK;
         let results: RetrievedDocument[];
         try {
             results = await this.cosmosDb.queryDocuments(
@@ -95,7 +93,7 @@ export class ActorController implements interfaces.Controller {
                 { enableCrossPartitionQuery: true },
             );
         } catch (err) {
-            resCode = httpStatus.InternalServerError;
+            resCode = HttpStatus.INTERNAL_SERVER_ERROR;
         }
 
         return res.send(resCode, results);
@@ -133,7 +131,7 @@ export class ActorController implements interfaces.Controller {
         const actorId = req.params.id;
 
         // make query, catch errors
-        let resCode = httpStatus.OK;
+        let resCode = HttpStatus.OK;
         let result: RetrievedDocument;
         try {
           result = await this.cosmosDb.getDocument(database,
@@ -142,10 +140,10 @@ export class ActorController implements interfaces.Controller {
             actorId);
         } catch (err) {
           if (err.toString().includes("NotFound")) {
-            resCode = httpStatus.NotFound;
+            resCode = HttpStatus.NOT_FOUND;
             result = ActorController.actorDoesNotExistError;
           } else {
-            resCode = httpStatus.InternalServerError;
+            resCode = HttpStatus.INTERNAL_SERVER_ERROR;
             result = err.toString();
           }
         }
@@ -193,17 +191,18 @@ export class ActorController implements interfaces.Controller {
 
         actor.validate().then(async (errors) => {
             if (errors.length > 0) {
-                return res.send(httpStatus.BadRequest,
+                return res.send(HttpStatus.BAD_REQUEST,
                     {
+                        // Unwrap all of the validation errors into an array
                         message: [].concat.apply([], errors.map((x) =>
                             Object.values(x.constraints))),
-                        status: httpStatus.BadRequest,
+                        status: HttpStatus.BAD_REQUEST,
                     });
             }
         });
 
         // upsert document, catch errors
-        let resCode: number = httpStatus.Created;
+        let resCode: number = HttpStatus.CREATED;
         let result: RetrievedDocument;
         try {
             result = await this.cosmosDb.upsertDocument(
@@ -212,7 +211,7 @@ export class ActorController implements interfaces.Controller {
                 req.body,
             );
         } catch (err) {
-            resCode = httpStatus.InternalServerError;
+            resCode = HttpStatus.INTERNAL_SERVER_ERROR;
         }
 
         return res.send(resCode, result);

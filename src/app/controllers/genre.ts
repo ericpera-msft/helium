@@ -2,7 +2,7 @@ import { RetrievedDocument } from "documentdb";
 import { inject, injectable } from "inversify";
 import { Controller, Get, interfaces } from "inversify-restify-utils";
 import { Request } from "restify";
-import { httpStatus } from "../../config/constants";
+import * as HttpStatus from "http-status-codes";
 import { collection, database } from "../../db/dbconstants";
 import { IDatabaseProvider } from "../../db/idatabaseprovider";
 import { ILoggingProvider } from "../../logging/iLoggingProvider";
@@ -16,10 +16,9 @@ import { DateUtilities } from "../../utilities/dateUtilities";
 @injectable()
 export class GenreController implements interfaces.Controller {
 
-    constructor(
-        @inject("IDatabaseProvider") private cosmosDb: IDatabaseProvider,
-        @inject("ITelemProvider") private telem: ITelemProvider,
-        @inject("ILoggingProvider") private logger: ILoggingProvider) {
+    constructor(@inject("IDatabaseProvider") private cosmosDb: IDatabaseProvider,
+                @inject("ITelemProvider") private telem: ITelemProvider,
+                @inject("ILoggingProvider") private logger: ILoggingProvider) {
         this.cosmosDb = cosmosDb;
         this.telem = telem;
         this.logger = logger;
@@ -52,7 +51,7 @@ export class GenreController implements interfaces.Controller {
             query: "SELECT VALUE root.id FROM root where root.type = 'Genre'",
         };
 
-        let resCode = httpStatus.OK;
+        let resCode = HttpStatus.OK;
         let results: RetrievedDocument[];
         try {
           results = await this.cosmosDb.queryDocuments(
@@ -62,7 +61,7 @@ export class GenreController implements interfaces.Controller {
             { enableCrossPartitionQuery: true },
           );
         } catch (err) {
-          resCode = httpStatus.InternalServerError;
+          resCode = HttpStatus.INTERNAL_SERVER_ERROR;
         }
 
         return res.send(resCode, results);
